@@ -1,0 +1,8 @@
+{
+  "name": "Lean Production Critical Component & MRP Planner",
+  "description": "Lean tabular MRP and consolidated RM/PM procurement environment with week-wise consolidated requirements, SAP Inward actual receipts, unmet backlog roll-forward, and delivery schedule change control with mandatory reasons and timestamped audit logs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
