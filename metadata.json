@@ -1,6 +1,6 @@
 {
   "name": "Lean Production Critical Component & MRP Planner",
-  "description": "Lean tabular MRP and consolidated RM/PM procurement environment with week-wise consolidated requirements, SAP Inward actual receipts, unmet backlog roll-forward, and delivery schedule change control with mandatory reasons and timestamped audit logs.",
+  "description": "Enterprise 3-Phase Production Planning & S&OP Hub: Phase 1 Monthly S&OP feasibility, supply concern flags & demand reduction; Phase 2 Weekly MRP & consolidated RM procurement; Phase 3 Daily 3-day rolling shift schedule with live stock/ETA feasibility, red shortage halting, PDF export & planner constraint override; plus Executive Management Horizon cockpit.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

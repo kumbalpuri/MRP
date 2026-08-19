@@ -2,18 +2,65 @@
  * Core Data Models for Production & MRP Planning Engine
  */
 
-export type UserRole = 'planner' | 'warehouse_manager' | 'production_supervisor' | 'procurement';
+export type UserRole =
+  | 'demand_planner'
+  | 'supply_planner'
+  | 'management'
+  | 'planner'
+  | 'procurement'
+  | 'warehouse_manager'
+  | 'production_supervisor';
+
+export type AppPhase = 'monthly' | 'weekly' | 'daily' | 'management';
 
 // 0. Mini Factory & Production Lines Data Definition
-export type MiniFactory = 'MF1' | 'MF2' | 'MF3' | 'Machining';
+export type MiniFactory =
+  | 'Pumps_Division'
+  | 'Valves_Division'
+  | 'Throttle_ETB'
+  | 'Machining'
+  | 'Pump_Assembly'
+  | 'MF1'
+  | 'MF2'
+  | 'MF3';
 
-export const MINI_FACTORIES: MiniFactory[] = ['MF1', 'MF2', 'MF3', 'Machining'];
+export const MINI_FACTORIES: MiniFactory[] = [
+  'Pumps_Division',
+  'Valves_Division',
+  'Throttle_ETB',
+  'Machining'
+];
 
 export const MINI_FACTORY_LINES: Record<MiniFactory, string[]> = {
+  Pumps_Division: [
+    'A-PMP1 (Vacuum Pump)',
+    'A-PMP2 (Panther VP)',
+    'A-OIL1 (Engine Oil Pump)',
+    'A-OIL2 (Variable Oil Pump)'
+  ],
+  Valves_Division: [
+    'A-EGR1 (EGR Valve)',
+    'A-EGR2 (EGR Cooler Assy)',
+    'A-BPV1 (Turbo Bypass Valve)'
+  ],
+  Throttle_ETB: [
+    'A-ETB1 (ETB 48mm)',
+    'A-ETB2 (ETB 60mm Drive-by-Wire)'
+  ],
+  Machining: [
+    'CNC Line 1 (Castings)',
+    'CNC Line 2 (Rotors/Shafts)',
+    'Milling Line 1 (Valve Bodies)'
+  ],
+  Pump_Assembly: [
+    'A-PMP1',
+    'A-PMP2',
+    'A-PMP3',
+    'A-PMP4'
+  ],
   MF1: ['Line 1A', 'Line 1B', 'Line 1C'],
   MF2: ['Line 2A', 'Line 2B'],
-  MF3: ['Line 3A', 'Line 3B', 'Line 3C'],
-  Machining: ['CNC Line 1', 'CNC Line 2', 'Milling Line 1']
+  MF3: ['Line 3A', 'Line 3B', 'Line 3C']
 };
 
 // 1. BOM (Bill of Materials) - Screenshot 1
@@ -367,4 +414,218 @@ export interface ManagementShortageItem {
   vendor?: string;
   lastUpdated?: string;
 }
+
+// ==========================================
+// PHASE 1: MONTHLY S&OP & FEASIBILITY MODELS
+// ==========================================
+
+export type MonthlyPlanStatus =
+  | 'DRAFT'
+  | 'RELEASED_FOR_VALIDATION'
+  | 'FLAGS_RAISED'
+  | 'CONSENSUS_REACHED'
+  | 'APPROVED_LOCKED';
+
+export interface MonthlyPlanState {
+  month: string; // e.g., '2026-07'
+  title: string;
+  status: MonthlyPlanStatus;
+  releasedAt?: string;
+  releasedBy?: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  totalMonthlyDemand: number;
+  totalProducibleDemand: number;
+  notes?: string;
+  version: number;
+}
+
+export type MonthlyPlanFlagCategory =
+  | 'SUPPLIER_CAPACITY'
+  | 'RM_SHORTAGE'
+  | 'PM_LEAD_TIME'
+  | 'LOGISTICS_CUSTOMS'
+  | 'MOQ_BATCH_SIZE'
+  | 'QUALITY_HOLD'
+  | 'PRICING_COMMERCIAL'
+  | 'OTHER';
+
+export const FLAG_CATEGORY_LABELS: Record<MonthlyPlanFlagCategory, string> = {
+  SUPPLIER_CAPACITY: 'Supplier Capacity Issue',
+  RM_SHORTAGE: 'Raw Material Shortage',
+  PM_LEAD_TIME: 'Packaging Material Lead Time Delay',
+  LOGISTICS_CUSTOMS: 'Logistics / Freight / Customs Bottleneck',
+  MOQ_BATCH_SIZE: 'MOQ / Minimum Batch Size Constraint',
+  QUALITY_HOLD: 'Quality Quarantine / Hold',
+  PRICING_COMMERCIAL: 'Commercial / Pricing Hold',
+  OTHER: 'Other Operational Concern'
+};
+
+export interface FlagDiscussionMessage {
+  id: string;
+  authorRole: 'demand_planner' | 'supply_planner' | 'procurement' | 'logistics' | 'production_supervisor' | 'management';
+  authorName: string;
+  timestamp: string; // YYYY-MM-DD HH:mm:ss
+  message: string;
+  proposedAction?: string;
+  badge?: string;
+}
+
+export interface MonthlyPlanFlag {
+  id: string;
+  fgCode: string;
+  fgDescription: string;
+  componentCode?: string;
+  componentDescription?: string;
+  category: MonthlyPlanFlagCategory;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  raisedByRole: 'supply_planner' | 'procurement' | 'logistics' | 'production_supervisor';
+  raisedByName: string;
+  raisedAt: string; // YYYY-MM-DD HH:mm:ss
+  title: string;
+  description: string;
+  supplierName?: string;
+  supplierCapacityLimit?: number;
+  currentDemandQty: number;
+  recommendedDemandCut?: number; // e.g. 500 units or 20%
+  status: 'OPEN' | 'IN_DISCUSSION' | 'RESOLVED' | 'WAIVED';
+  resolutionAction?: 'DEMAND_REDUCED' | 'SUPPLY_EXPEDITED' | 'REALLOCATED' | 'ACCEPTED_AS_IS';
+  resolutionNote?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  discussions: FlagDiscussionMessage[];
+}
+
+// ==========================================
+// SYSTEM AUDIT TRAIL / SYSTEM LOGS
+// ==========================================
+
+export interface SystemAuditLogItem {
+  id: string;
+  timestamp: string; // YYYY-MM-DD HH:mm:ss
+  phase: 'MONTHLY_PHASE' | 'WEEKLY_PHASE' | 'DAILY_PHASE' | 'MANAGEMENT';
+  eventType:
+    | 'PLAN_RELEASED'
+    | 'FLAG_RAISED'
+    | 'DISCUSSION_POSTED'
+    | 'DEMAND_REDUCED'
+    | 'DEMAND_INCREASED'
+    | 'WEEKLY_PLAN_ADJUSTED'
+    | 'SUPPLY_SCHEDULE_CHANGED'
+    | 'PLAN_APPROVED'
+    | 'CONSTRAINT_OVERRIDDEN'
+    | 'DAILY_PLAN_RELEASED'
+    | 'DAILY_PRODUCTION_LOGGED'
+    | 'SAP_INWARD_BOOKED'
+    | 'SAP_INWARD_RECORDED'
+    | 'RESERVATION_ALLOCATED';
+  actorRole: string;
+  actorName: string;
+  entityKey: string; // e.g. "FG-1001" or "RM-101"
+  description: string;
+  oldValue?: string;
+  newValue?: string;
+  reason?: string;
+}
+
+// ==========================================
+// PHASE 3: DAILY 3-DAY OPERATIONAL ROLLING PLAN
+// (Today, Tomorrow, Day After Tomorrow)
+// Exactly matching user's uploaded image
+// ==========================================
+
+export interface DailyShiftSlot {
+  plannedQty: number;
+  actualQty?: number;
+  status: 'RUNNING' | 'HALTED_SHORTAGE' | 'IE' | 'MAINTENANCE' | 'IDLE';
+  note?: string;
+}
+
+export interface DailyDayPlan {
+  date: string; // e.g. '19-Aug-26'
+  dayName: string; // e.g. 'Wed', 'Thu', 'Fri'
+  shiftA: DailyShiftSlot;
+  shiftB: DailyShiftSlot;
+  shiftC: DailyShiftSlot;
+}
+
+export interface DailyRollingPlanRow {
+  id: string;
+  lineName: string; // e.g. 'A-PMP1', 'A-PMP2', 'A-PMP3', 'A-PMP4'
+  productNumber: string; // e.g. '7.09629.01.0', '7.06496.03.0'
+  productName: string; // e.g. 'FAM B', 'Vacuum Pump Panther', 'Mahindra 3D 15'
+  uom: string;
+  stdRoutingPerHour: number; // e.g. 55, 72, 66, 40, 48
+  alternateRoutingPerHour: number; // e.g. 28, 36, 31, 20, 24
+  stdPackSize: number; // e.g. 200, 48, 40, 320, 75, 125
+  // 3 Rolling Days
+  day1: DailyDayPlan; // Today (19-Aug-26 Wed)
+  day2: DailyDayPlan; // Tomorrow (20-Aug-26 Thu)
+  day3: DailyDayPlan; // Day After Tomorrow (21-Aug-26 Fri)
+  materialStatusRemarks: string; // e.g. "Rotor_850 pcs_ETA_19.08 - 07:00 PM. Rotor_800 pcs_ETA_20.08 - 03:00 PM."
+  // Feasibility Check
+  total3DayPlannedQty: number;
+  maxProducibleFromStock: number;
+  maxProducibleWithETA: number;
+  isFeasibleStockOnly: boolean;
+  isFeasibleWithETA: boolean;
+  criticalBottleneckComponent?: string;
+  criticalBottleneckShortageQty?: number;
+  stockoutShiftDescription?: string; // e.g. "Critical: Shaft stockout on Day 1 Shift A"
+  isReleased: boolean;
+  hasConstraintOverride: boolean;
+  overrideReason?: string;
+}
+
+// ==========================================
+// MANAGEMENT HORIZON (CURRENT & NEXT WEEK)
+// ==========================================
+
+export interface StakeholderPerspective {
+  status: 'ALIGNED' | 'FLAGGED' | 'CONSTRAINT' | 'ACTION_REQUIRED' | 'APPROVED';
+  viewpoint: string;
+  keyMetric: string;
+  actionItem: string;
+}
+
+export interface ManagementHorizonItem {
+  id: string;
+  fgCode: string;
+  fgDescription: string;
+  line: string;
+  miniFactory: MiniFactory;
+  customerName?: string;
+  // Current Week (e.g. W3)
+  currentWeekNum: 1 | 2 | 3 | 4;
+  currentWeekDemand: number;
+  currentWeekMaxProducible: number;
+  currentWeekGap: number;
+  currentWeekCoveragePercent: number;
+  // Next Week (e.g. W4)
+  nextWeekNum: 1 | 2 | 3 | 4;
+  nextWeekDemand: number;
+  nextWeekMaxProducible: number;
+  nextWeekGap: number;
+  nextWeekCoveragePercent: number;
+  // Bottleneck details
+  criticalComponentCode: string;
+  criticalComponentDescription: string;
+  category: 'RM' | 'PM';
+  uom: string;
+  stockOnHand: number;
+  inTransitETA: number;
+  etaDate: string;
+  supplierName: string;
+  supplierCapacityStatus: 'NORMAL' | 'AT_LIMIT' | 'CAPACITY_BREACH';
+  flagCategory?: MonthlyPlanFlagCategory;
+  // Stakeholder viewpoints
+  stakeholderPositions: {
+    demandPlanner: StakeholderPerspective;
+    supplyPlanner: StakeholderPerspective;
+    logistics: StakeholderPerspective;
+    plantOps: StakeholderPerspective;
+    management: StakeholderPerspective;
+  };
+}
+
 

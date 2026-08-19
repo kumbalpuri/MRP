@@ -46,12 +46,12 @@ export const MiniFactoryFilterBar: React.FC<MiniFactoryFilterBarProps> = ({
   // Badge styling per Mini Factory
   const getMFBadgeStyle = (mf: MiniFactory) => {
     switch (mf) {
-      case 'MF1':
+      case 'Pumps_Division':
         return 'border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-900';
-      case 'MF2':
-        return 'border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-900';
-      case 'MF3':
-        return 'border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-900';
+      case 'Valves_Division':
+        return 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900';
+      case 'Throttle_ETB':
+        return 'border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-900';
       case 'Machining':
         return 'border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900';
       default:
@@ -61,12 +61,12 @@ export const MiniFactoryFilterBar: React.FC<MiniFactoryFilterBarProps> = ({
 
   const getMFActiveStyle = (mf: MiniFactory) => {
     switch (mf) {
-      case 'MF1':
+      case 'Pumps_Division':
         return 'bg-blue-600 text-white border-blue-700 shadow-xs font-black';
-      case 'MF2':
-        return 'bg-teal-600 text-white border-teal-700 shadow-xs font-black';
-      case 'MF3':
-        return 'bg-indigo-600 text-white border-indigo-700 shadow-xs font-black';
+      case 'Valves_Division':
+        return 'bg-emerald-600 text-white border-emerald-700 shadow-xs font-black';
+      case 'Throttle_ETB':
+        return 'bg-purple-600 text-white border-purple-700 shadow-xs font-black';
       case 'Machining':
         return 'bg-amber-600 text-white border-amber-700 shadow-xs font-black';
       default:
